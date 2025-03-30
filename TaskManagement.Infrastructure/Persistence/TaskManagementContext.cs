@@ -26,22 +26,5 @@ public class TaskManagementContext : DbContext
                     .IsRowVersion();
             }
         }
-
-        modelBuilder.Entity<UserTask>()
-            .HasKey(ut => new { ut.UserId, ut.TaskId });
-
-        modelBuilder.Entity<UserTask>()
-            .HasOne(ut => ut.User)
-            .WithMany(u => u.UserTasks)
-            .HasForeignKey(ut => ut.UserId);
-
-        modelBuilder.Entity<UserTask>()
-            .HasOne(ut => ut.Task)
-            .WithMany(t => t.UserTasks)
-            .HasForeignKey(ut => ut.TaskId);
-
-        modelBuilder.Entity<TaskComment>()
-            .Property(tc => tc.CommentText)
-            .HasMaxLength(1000);
     }
 }

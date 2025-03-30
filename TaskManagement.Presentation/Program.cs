@@ -12,3 +12,5 @@ services.AddInfrastructure(builder.Configuration);
 var app = builder.Build();
 
 app.Configure();
+
+app.Run();
