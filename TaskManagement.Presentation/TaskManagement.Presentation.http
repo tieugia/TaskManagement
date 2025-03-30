@@ -1,0 +1,6 @@
+@TaskManagement.Presentation_HostAddress = http://localhost:5193
+
+GET {{TaskManagement.Presentation_HostAddress}}/
+Accept: application/json
+
+###
