@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TaskManagement.Application.DTOs;
 using TaskManagement.Application.Interfaces.Repositories;
 using TaskManagement.Domain.Entities;
 using TaskManagement.Infrastructure.Persistence;
@@ -9,13 +10,27 @@ public class UserTaskRepository : GenericRepository<UserTask>, IUserTaskReposito
 {
     public UserTaskRepository(TaskManagementContext context) : base(context) { }
 
-    public async Task<UserTask?> GetByIdAsync(Guid userId, Guid taskId)
-    {
-        return await _dbSet.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == userId && x.TaskId == taskId);
-    }
+    public Task<UserTask?> GetByIdAsync(Guid userId, Guid taskId)
+        => Query().SingleOrDefaultAsync(ut => ut.UserId == userId && ut.TaskId == taskId);
 
-    public Task<List<TaskEntity>> GetTasksByUserAsync(Guid userId)
-        => Where(x => x.UserId == userId)
-          .Select(x => x.Task)
-          .ToListAsync();
+    public async Task<IEnumerable<TaskEntity>> FilterTasksAsync(Guid userId, TaskFilterDto filter)
+    {
+        var query = Where(ut => ut.UserId == userId)
+                   .Select(x => x.Task);
+
+        if (filter.Status.HasValue)
+            query = query.Where(t => t.Status == filter.Status.Value);
+
+        if (!string.IsNullOrWhiteSpace(filter.Title))
+            query = query.Where(t => t.Title.Contains(filter.Title));
+
+        if (!string.IsNullOrWhiteSpace(filter.Description))
+            query = query.Where(t => t.Description != null && t.Description.Contains(filter.Description));
+
+        query = query.OrderByDescending(t => t.CreatedAt)
+                     .Skip((filter.Page - 1) * filter.PageSize)
+                     .Take(filter.PageSize);
+
+        return await query.ToListAsync();
+    }
 }

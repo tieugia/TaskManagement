@@ -1,5 +1,4 @@
 ﻿using TaskManagement.Application.DTOs;
-using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Application.Interfaces.Services;
 
@@ -9,5 +8,6 @@ public interface ITaskService
     Task<GetTaskDto?> CreateTaskAsync(CreateTaskDto taskDto);
     Task UpdateTaskAsync(UpdateTaskDto taskDto);
     Task DeleteTaskAsync(Guid id);
-    Task<List<TaskEntity>> GetTasksByUserAsync(Guid userId);
+    Task AssignUserToTaskAsync(Guid taskId, Guid userId);
+    Task<IEnumerable<GetTaskDto>?> FilterTasksAsync(Guid userId, TaskFilterDto filter);
 }

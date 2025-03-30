@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Net;
+using TaskManagement.Application.Exceptions;
 
 namespace TaskManagement.Presentation.Middleware
 {
@@ -36,13 +37,19 @@ namespace TaskManagement.Presentation.Middleware
             {
                 await _next(context);
             }
+            catch (AlreadyExistsException ex)
+            {
+                _logger.LogWarning(ex, "Resource already exists.");
+                await HandleAlreadyExistsAsync(context, ex);
+            }
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning(ex, "Resource not found.");
                 await HandleNotFoundAsync(context, ex);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogWarning(ex, "Conflict: The resource was updated by another user.");
                 await HandleConflictAsync(context);
             }
             catch (Exception ex)
@@ -50,6 +57,12 @@ namespace TaskManagement.Presentation.Middleware
                 _logger.LogError(ex, "An unhandled exception occurred.");
                 await HandleExceptionAsync(context, ex);
             }
+        }
+
+        private static Task HandleAlreadyExistsAsync(HttpContext context, AlreadyExistsException ex)
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            return context.Response.WriteAsJsonAsync(new { error = ex.Message });
         }
 
         private static Task HandleNotFoundAsync(HttpContext context, KeyNotFoundException ex)

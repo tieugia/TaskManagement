@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using TaskManagement.Common.Constants;
 using TaskManagement.Presentation.Middleware;
 
 namespace TaskManagement.Presentation;
@@ -15,8 +14,9 @@ public static class DependencyInjection
     /// Add Presentation services
     /// </summary>
     /// <param name="services"></param>
+    /// <param name="configuration"></param>
     /// <returns></returns>
-    public static IServiceCollection AddPresentation(this IServiceCollection services)
+    public static IServiceCollection AddPresentation(this IServiceCollection services, IConfiguration configuration)
     {
         // Register services
         services.AddControllers();
@@ -32,20 +32,19 @@ public static class DependencyInjection
             });
         });
 
-        //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        //.AddJwtBearer(options =>
-        //{
-        //    options.TokenValidationParameters = new TokenValidationParameters
-        //    {
-        //        ValidateIssuer = true,
-        //        ValidateAudience = true,
-        //        ValidateLifetime = true,
-        //        ValidateIssuerSigningKey = true,
-        //        ValidIssuer = "CustomerAPI",
-        //        ValidAudience = "CustomerClient",
-        //        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SecretKeyJwt.SecretKey))
-        //    };
-        //});
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!))
+            };
+        });
 
         services.AddAuthorization();
 

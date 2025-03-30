@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TaskManagement.Application.Interfaces;
 using TaskManagement.Application.Interfaces.Repositories;
+using TaskManagement.Application.Interfaces.Services;
 using TaskManagement.Common.Constants;
 using TaskManagement.Infrastructure.Persistence;
 using TaskManagement.Infrastructure.Repositories;
@@ -24,6 +25,7 @@ public static class DependencyInjection
             options.Configuration = configuration.GetConnectionString(DatabaseConstants.Redis_Db);
         });
 
+        services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<ICacheService, RedisCacheService>();
 
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

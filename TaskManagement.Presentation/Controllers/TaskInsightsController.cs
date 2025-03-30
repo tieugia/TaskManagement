@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TaskManagement.Application.Interfaces.Services;
 using TaskManagement.Common.Attributes;
 using TaskStatus = TaskManagement.Domain.Enums.TaskStatus;
@@ -8,6 +9,7 @@ namespace TaskManagement.Presentation.Controllers;
 /// <summary>
 /// Controller for TaskInsights
 /// </summary>
+[Authorize(Roles = "Admin")]
 [Route("api/[controller]")]
 [ApiController]
 public class TaskInsightsController : ControllerBase

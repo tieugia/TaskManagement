@@ -1,8 +1,10 @@
-﻿using TaskManagement.Application.DTOs;
+﻿using System.Threading.Tasks;
+using TaskManagement.Application.DTOs;
 using TaskManagement.Application.Interfaces;
 using TaskManagement.Application.Interfaces.Repositories;
 using TaskManagement.Application.Interfaces.Services;
 using TaskManagement.Common.Constants;
+using TaskManagement.Common.Helpers;
 using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Application.Services;
@@ -77,7 +79,8 @@ public class TaskService : ITaskService
             Status = createdTask.Status,
             Description = createdTask.Description,
             CreatedAt = createdTask.CreatedAt,
-            UpdatedAt = createdTask.UpdatedAt
+            UpdatedAt = createdTask.UpdatedAt,
+            RowVersion = createdTask.RowVersion
         };
     }
 
@@ -111,18 +114,54 @@ public class TaskService : ITaskService
         await _cacheService.RemoveAsync(CacheKeys.TasksByUser(task.CreatedBy));
     }
 
-    public async Task<List<TaskEntity>> GetTasksByUserAsync(Guid userId)
+    public async Task<IEnumerable<GetTaskDto>?> FilterTasksAsync(Guid userId, TaskFilterDto filter)
     {
         var cacheKey = CacheKeys.TasksByUser(userId);
-        var cached = await _cacheService.GetAsync<List<TaskEntity>>(cacheKey);
+        var cached = await _cacheService.GetAsync<List<GetTaskDto>>(cacheKey);
         if (cached != null) return cached;
 
         var userExists = await _userRepository.ExistAsync(userId);
         if (!userExists)
             throw new KeyNotFoundException("User not found");
 
-        var result = await _userTaskRepository.GetTasksByUserAsync(userId);
-        await _cacheService.SetAsync(cacheKey, result);
-        return result;
+        var tasks = await _userTaskRepository.FilterTasksAsync(userId, filter);
+
+        if (tasks.IsNullOrEmpty())
+            return null;
+
+        var taskDtos = tasks.Select(t => new GetTaskDto
+        {
+            Id = t.Id,
+            Status = t.Status,
+            Title = t.Title,
+            Description = t.Description,
+            CreatedBy = t.CreatedBy,
+            CreatedAt = t.CreatedAt,
+            UpdatedAt = t.UpdatedAt,
+            RowVersion = t.RowVersion
+        });
+
+        await _cacheService.SetAsync(cacheKey, taskDtos);
+
+        return taskDtos;
     }
+
+    public async Task AssignUserToTaskAsync(Guid taskId, Guid userId)
+    {
+        var existing = await _userTaskRepository.GetByIdAsync(userId, taskId);
+        if (existing != null)
+            return;
+
+        var userTask = new UserTask
+        {
+            UserId = userId,
+            TaskId = taskId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _userTaskRepository.AddAsync(userTask);
+
+        await _cacheService.RemoveAsync(CacheKeys.TasksByUser(userId));
+    }
+
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TaskManagement.Application.DTOs;
 using TaskManagement.Application.Interfaces.Services;
 using TaskManagement.Common.Attributes;
@@ -8,6 +9,7 @@ namespace TaskManagement.Presentation.Controllers;
 /// <summary>
 /// Task controller
 /// </summary>
+[Authorize(Roles = "User, Manager, Admin")]
 [ApiController]
 [Route("api/[controller]")]
 public class TaskController : ControllerBase
@@ -42,13 +44,14 @@ public class TaskController : ControllerBase
     /// Gets tasks by user
     /// </summary>
     /// <param name="userId">User ID</param>
+    /// <param name="filter">Filter</param>
     /// <returns>List of tasks</returns>
     [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetByUser([NotEmptyGuid] Guid userId)
+    public async Task<IActionResult> GetByUser([NotEmptyGuid] Guid userId, [FromQuery] TaskFilterDto filter)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var tasks = await _taskService.GetTasksByUserAsync(userId);
+        var tasks = await _taskService.FilterTasksAsync(userId, filter);
         return Ok(tasks);
     }
 
@@ -97,6 +100,21 @@ public class TaskController : ControllerBase
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         await _taskService.DeleteTaskAsync(id);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Assigns a user to a task
+    /// </summary>
+    /// <param name="taskId"></param>
+    /// <param name="userId"></param>
+    /// <returns>No content</returns>
+    [HttpPost("{taskId}/assign/{userId}")]
+    public async Task<IActionResult> Assign([NotEmptyGuid] Guid taskId, [NotEmptyGuid] Guid userId)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        await _taskService.AssignUserToTaskAsync(taskId, userId);
         return NoContent();
     }
 }

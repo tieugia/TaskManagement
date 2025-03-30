@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TaskManagement.Domain.Entities;
+﻿using TaskManagement.Domain.Entities;
 
 namespace TaskManagement.Application.Interfaces.Repositories;
 
-public interface IUserRepository : IGenericRepository<User> { }
+public interface IUserRepository : IGenericRepository<User>
+{
+    Task<bool> UsernameExistAsync(string username);
+    Task<User?> GetByUsernameAsync(string username);
+}

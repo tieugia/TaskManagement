@@ -9,5 +9,5 @@ public class UpdateTaskDto
     public string? Description { get; set; }
     public DateTime UpdatedAt { get; set; }
     public byte[] RowVersion { get; set; } = null!;
-    public TaskStatus Status { get; internal set; }
+    public TaskStatus Status { get; set; }
 }
