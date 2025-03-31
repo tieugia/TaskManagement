@@ -15,15 +15,14 @@ services:
       - sqlserver
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__TaskManagement_Db=Server=sqlserver,1433;Database=TaskManagement_DEV;User ID=sa;Password=123456@abc;Encrypt=False
-      - ConnectionStrings__Redis=redis:6379
+      - ConnectionStrings__TaskManagement_Db=Server=sqlserver;Database=TaskManagement_DEV;User ID=sa;Password=123456@abc;Encrypt=False
+      - ConnectionStrings__Redis=redis
 
   redis:
     image: redis:latest
     container_name: redis
     ports:
-      - "6378:6378"
-      - "6379:6379"
+      - "6379:6378"
 
   sqlserver:
       build:
@@ -31,8 +30,7 @@ services:
         dockerfile: Dockerfile.sqlserver
       container_name: sqlserver
       ports:
-        - "1434:1434"
-        - "1435:1435"
+        - "1434:1433"
       environment:
         SA_PASSWORD: "123456@abc"
         ACCEPT_EULA: "Y"
