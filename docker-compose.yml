@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   task-api:
     tty: true
@@ -10,11 +12,32 @@ services:
       - "8081:8081"
     depends_on:
       - redis
+      - sqlserver
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__TaskManagement_Db=Server=172.18.0.1,1434;Database=TaskManagement_DEV;User=sa;Password=123456@abc;Encrypt=False
+      - ConnectionStrings__Redis=172.18.0.1:6379
 
   redis:
     image: redis:latest
     container_name: redis
     ports:
+      - "6378:6378"
       - "6379:6379"
+
+  sqlserver:
+      build:
+        context: .
+        dockerfile: Dockerfile.sqlserver
+      container_name: sqlserver
+      ports:
+        - "1434:1434"
+        - "1435:1435"
+      environment:
+        SA_PASSWORD: "123456@abc"
+        ACCEPT_EULA: "Y"
+        MSSQL_PID: "Developer"
+      volumes:
+      - ./init-db.sh:/init-db.sh
+      - ./Script.sql:/Script.sql
+      command: ["/bin/bash", "/init-db.sh"]

@@ -37,6 +37,11 @@ namespace TaskManagement.Presentation.Middleware
             {
                 await _next(context);
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Resource already exists.");
+                await HandleUnauthorizedAsync(context, ex);
+            }
             catch (AlreadyExistsException ex)
             {
                 _logger.LogWarning(ex, "Resource already exists.");
@@ -59,6 +64,12 @@ namespace TaskManagement.Presentation.Middleware
             }
         }
 
+        private static Task HandleUnauthorizedAsync(HttpContext context, UnauthorizedAccessException ex)
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            return context.Response.WriteAsJsonAsync(new { error = ex.Message });
+        }
+        
         private static Task HandleAlreadyExistsAsync(HttpContext context, AlreadyExistsException ex)
         {
             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
