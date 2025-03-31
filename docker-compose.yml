@@ -15,8 +15,8 @@ services:
       - sqlserver
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__TaskManagement_Db=Server=172.18.0.1,1434;Database=TaskManagement_DEV;User=sa;Password=123456@abc;Encrypt=False
-      - ConnectionStrings__Redis=172.18.0.1:6379
+      - ConnectionStrings__TaskManagement_Db=Server=sqlserver,1433;Database=TaskManagement_DEV;User ID=sa;Password=123456@abc;Encrypt=False
+      - ConnectionStrings__Redis=redis:6379
 
   redis:
     image: redis:latest
